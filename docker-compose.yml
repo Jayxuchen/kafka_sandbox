@@ -1,0 +1,38 @@
+version: '2'
+
+networks:
+  kafka_network:
+    driver: bridge
+
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - '2181:2181'
+    volumes:
+      - '/home/json/kafka/zookeeper_volume:/bitnami/zookeeper'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - kafka_network
+  kafka_service:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    volumes:
+      - '/home/json/kafka/kafka_volume:/bitnami/kafka'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - ALLOW_PLAINTEXT_LISTENER=yes
+        #      - KAFKA_LISTENERS=PLAINTEXT://kafka_service:9092
+        #      - KAFKA__ADVERTISED_LISTENERS=CLIENT://kafka_service:9092,EXTERNAL://kafka_service:9093
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka_network
+
